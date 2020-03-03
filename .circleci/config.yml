@@ -1,0 +1,47 @@
+version: 2.1
+orbs:
+  codecov: codecov/codecov@1.0.2 # need to allow 3rd party orbs in project settings on circleci
+jobs:
+  test-julia10:
+    working_directory: /root/project/DarkCurves # Clone into a directory whose name matches your Package.
+    docker:
+      - image: julia:1.0 # image comes from Docker hub
+    steps:
+      - checkout
+      - run:
+          name: Install and test this package
+          command: julia --project=/root/project/DarkCurves -e 'using Pkg; Pkg.test(; coverage=true)'
+      - run:
+          name: Process code-coverage
+          command: julia --project=/root/project/DarkCurves -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  test-julia12:
+    working_directory: /root/project/DarkCurves # Clone into a directory whose name matches your Package.
+    docker:
+      - image: julia:1.2 # image comes from Docker hub
+    steps:
+      - checkout
+      - run:
+          name: Install and test this package
+          command: julia --project=/root/project/DarkCurves -e 'using Pkg; Pkg.test(; coverage=true)'
+      - run:
+          name: Process code-coverage
+          command: julia --project=/root/project/DarkCurves -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  test-julia13:
+    working_directory: /root/project/DarkCurves # Clone into a directory whose name matches your Package.
+    docker:
+      - image: julia:1.3 # image comes from Docker hub
+    steps:
+      - checkout
+      - run:
+          name: Install and test this package
+          command: julia --project=/root/project/DarkCurves -e 'using Pkg; Pkg.test(; coverage=true)'
+      - run:
+          name: Process code-coverage
+          command: julia --project=/root/project/DarkCurves -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test-julia10
+      - test-julia12
+      - test-julia13
