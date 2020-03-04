@@ -9,6 +9,8 @@ export curve_modulus
 export curve_coeff_a
 export curve_coeff_b
 export curve_scalar_type
+export EllipticCurve
+export EllipticCurvePoint
 
 include("point_affine.jl")
 export AffinePoint
