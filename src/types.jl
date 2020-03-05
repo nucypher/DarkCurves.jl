@@ -14,9 +14,22 @@ curve_endomorphism_lambda(::Type{<:EllipticCurve}) = error("not implemented")
 curve_endomorphism_beta(::Type{<:EllipticCurve}) = error("not implemented")
 
 
-curve_base(::Type{C}, ::Type{T}) where {C <: EllipticCurve, T} = convert.(T, curve_base(C))
-curve_coeff_a(::Type{C}, ::Type{T}) where {C <: EllipticCurve, T} = convert(T, curve_coeff_a(C))
-curve_coeff_b(::Type{C}, ::Type{T}) where {C <: EllipticCurve, T} = convert(T, curve_coeff_b(C))
+@generated function curve_base(::Type{C}, ::Type{T}) where {C <: EllipticCurve, T}
+    res = convert.(T, curve_base(C))
+    :( $res )
+end
+
+
+@generated function curve_coeff_a(::Type{C}, ::Type{T}) where {C <: EllipticCurve, T}
+    res = convert(T, curve_coeff_a(C))
+    :( $res )
+end
+
+
+@generated function curve_coeff_b(::Type{C}, ::Type{T}) where {C <: EllipticCurve, T}
+    res = convert(T, curve_coeff_b(C))
+    :( $res )
+end
 
 
 function curve_scalar_type(
