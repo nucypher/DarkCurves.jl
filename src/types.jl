@@ -26,10 +26,21 @@ function curve_scalar_type(
 end
 
 
+# Generic functions
+
+
 double(x) = x + x
+
+
 triple(x) = double(x) + x
+
+
 square(x) = x * x
-cube(x) = square(x) * x
 
 
 Base.Broadcast.broadcastable(x::EllipticCurvePoint) = (x,)
+
+
+function Base.:-(p::P, q::P) where P <: EllipticCurvePoint
+    p + (-q)
+end
