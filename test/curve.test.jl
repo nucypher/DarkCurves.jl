@@ -50,7 +50,7 @@ mul_funcs = (
     => ["double-and-add", "windowed", "sliding window", "wNAF"])
 
 
-(@testcase tags=[:performance] "Multiplication" for
+(@testcase "Multiplication" for
         curve_type in curve_types,
         point_type in point_types,
         func in mul_funcs
