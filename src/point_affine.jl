@@ -50,3 +50,7 @@ function Base.:+(p::AffinePoint{C, T}, q::AffinePoint{C, T}) where {C, T}
     y = l * (p.x - x) - p.y
     AffinePoint{C, T}(x, y)
 end
+
+
+endomorphism(p::AffinePoint{C, T}) where {C <: EndomorphismType4, T} =
+    iszero(p) ? p : AffinePoint{C, T}(curve_endomorphism_beta(C, T) * p.x, p.y)

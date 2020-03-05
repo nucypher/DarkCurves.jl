@@ -112,3 +112,7 @@ function Base.:+(p::ChudnovskyPoint{C, T}, q::ChudnovskyPoint{C, T}) where {C, T
     Z3_3 = Z3_2 * Z3
     ChudnovskyPoint{C, T}(X3, Y3, Z3, Z3_2, Z3_3)
 end
+
+
+endomorphism(p::ChudnovskyPoint{C, T}) where {C <: EndomorphismType4, T} =
+    iszero(p) ? p : ChudnovskyPoint{C, T}(curve_endomorphism_beta(C, T) * p.x, p.y, p.z, p.z2, p.z3)

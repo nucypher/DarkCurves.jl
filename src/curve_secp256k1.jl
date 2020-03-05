@@ -1,4 +1,4 @@
-struct Curve_secp256k1 <: EllipticCurve end
+struct Curve_secp256k1 <: EndomorphismType4 end
 
 curve_modulus(::Type{Curve_secp256k1}) = big(2)^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1
 curve_order(::Type{Curve_secp256k1}) = as_builtin(MLUInt{4, UInt64}(reverse((

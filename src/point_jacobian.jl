@@ -122,3 +122,7 @@ function Base.:+(p::JacobianPoint{C, T}, q::JacobianPoint{C, T}) where {C, T}
         JacobianPoint{C, T}(X3, Y3, Z3)
     end
 end
+
+
+endomorphism(p::JacobianPoint{C, T}) where {C <: EndomorphismType4, T} =
+    iszero(p) ? p : JacobianPoint{C, T}(curve_endomorphism_beta(C, T) * p.x, p.y, p.z)
