@@ -24,7 +24,7 @@ end
 double(x) = x + x
 
 
-function prepare_lincomb_dataset(curve_type, point_type, len)
+function prepare_lin_comb_dataset(curve_type, point_type, len)
     stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{4, UInt64})
     ptp = point_type{curve_type, stp}
 

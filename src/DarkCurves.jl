@@ -23,8 +23,11 @@ export ChudnovskyPoint
 
 include("mul.jl")
 
-include("lincomb.jl")
-export lincomb
+include("balanced_decomposition.jl")
+
+include("batch_operations.jl")
+export lin_comb
+export batch_mul
 
 include("curve_secp256k1.jl")
 export Curve_secp256k1

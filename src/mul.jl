@@ -93,54 +93,33 @@ function mul_sliding_window(p::P, y::V, w::Int=4) where {P <: EllipticCurvePoint
 end
 
 
-struct NAFIterator{T}
-    val :: T
-    window :: Int
-end
-
-
-Base.IteratorSize(::Type{NAFIterator{T}}) where T = Base.SizeUnknown()
-Base.IteratorEltype(::Type{NAFIterator{T}}) where T = Base.HasEltype()
-Base.eltype(::Type{NAFIterator{T}}) where T = Tuple{Int, Int}
-
-
-struct NAFIteratorState{T}
-    val :: T
-    idx :: Int
-end
-
-
-function next(iter::NAFIterator{T}, state::NAFIteratorState{T}) where T
-    val = state.val
-    idx = state.idx
-    w = iter.window
+function get_wnaf(val::T, w::Int) where T
+    mask = (one(T) << w) - one(T)
+    res = Int[]
 
     tz = trailing_zeros(val)
     val >>= tz
-    idx += tz
-
-    di = convert(Int, val & ((one(T) << w) - one(T)))
-    if di >= 1 << (w - 1)
-        val += ((1 << w) - di)
-    else
-        val -= di
+    for j in 1:tz
+        push!(res, 0)
     end
 
-    new_state = NAFIteratorState{T}(val, idx)
-    (idx, di), new_state
-end
+    while !iszero(val)
+        tz = trailing_zeros(val)
+        val >>= tz
+        for j in 1:tz-1
+            push!(res, 0)
+        end
 
+        di = convert(Int, val & mask)
+        if di >= 1 << (w - 1)
+            val += ((1 << w) - di)
+        else
+            val -= di
+        end
 
-function Base.iterate(iter::NAFIterator{T}, state::Union{Nothing, NAFIteratorState{T}}=nothing) where T
-    if state === nothing
-        state = NAFIteratorState{T}(iter.val, 0)
+        push!(res, di)
     end
-
-    if iszero(state.val)
-        nothing
-    else
-        next(iter, state)
-    end
+    res
 end
 
 
@@ -164,13 +143,14 @@ function mul_wnaf(p::P, y::V, w::Int=4) where {P <: EllipticCurvePoint, V <: Uni
         precomp[end-i+1] = -precomp[i]
     end
 
-    ds = collect(NAFIterator(y, w))
+    ds = get_wnaf(y, w)
 
     acc = zero(P)
-    for j in length(ds):-1:1
-        i, di = ds[j]
-        acc = acc + precomp[(di >> 1) + 1]
-        acc = repeated_double(acc, j == 1 ? i : i - ds[j-1][1])
+    for idx in length(ds):-1:1
+        acc = double(acc)
+        if !iszero(ds[idx])
+            acc += precomp[(ds[idx] >> 1) + 1]
+        end
     end
 
     acc

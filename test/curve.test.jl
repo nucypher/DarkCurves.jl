@@ -84,43 +84,4 @@ end)
 end)
 
 
-lincomb_funcs = (
-    [DarkCurves.lincomb_windowed]
-    => ["windowed"])
-fast_point_types = [JacobianPoint, ChudnovskyPoint] => ["Jacobian", "Chudnovsky"]
-
-
-(@testcase "Linear combination" for
-        curve_type in curve_types,
-        point_type in point_types,
-        func in lincomb_funcs
-
-    points, coeffs = prepare_lincomb_dataset(curve_type, point_type, 16)
-    ref = sum(points .* coeffs)
-    res = func(points, coeffs)
-    @test ref == res
-end)
-
-
-(@testcase tags=[:performance] "Linear combination baseline performance" for
-        curve_type in curve_types,
-        point_type in fast_point_types
-
-    points, coeffs = prepare_lincomb_dataset(curve_type, point_type, 1024)
-    trial = @benchmark sum($points .* $coeffs)
-    @test_result benchmark_result(trial)
-end)
-
-
-(@testcase tags=[:performance] "Linear combination performance" for
-        curve_type in curve_types,
-        point_type in fast_point_types,
-        func in lincomb_funcs,
-        width in [3, 4, 5]
-
-    points, coeffs = prepare_lincomb_dataset(curve_type, point_type, 1024)
-    trial = @benchmark $func($points, $coeffs, $width)
-    @test_result benchmark_result(trial)
-end)
-
 end
