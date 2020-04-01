@@ -65,19 +65,32 @@ mul_funcs = (
 end)
 
 
+(@testcase tags=[:performance] "Scalar multiplication performance" for
+        curve_type in curve_types
+
+    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{2, UInt128})
+
+    x_bi = 115047236638587805833081834189719086745649315857841928574581145752217906325686
+    x = convert(stp, x_bi)
+
+    trial = @benchmark $x * $x
+    @test_result benchmark_result(trial)
+end)
+
+
 (@testcase tags=[:performance] "Multiplication performance" for
         curve_type in curve_types,
         point_type in point_types,
         func in mul_funcs
 
-    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{4, UInt64})
+    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{2, UInt128})
     ptp = point_type{curve_type, stp}
 
     b1 = one(ptp)
     b2 = double(b1)
 
     x_bi = 115047236638587805833081834189719086745649315857841928574581145752217906325686
-    x = convert(MLUInt{4, UInt64}, x_bi)
+    x = convert(MLUInt{2, UInt128}, x_bi)
 
     trial = @benchmark $func($b2, $x)
     @test_result benchmark_result(trial)
