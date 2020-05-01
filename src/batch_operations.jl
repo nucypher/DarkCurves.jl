@@ -134,3 +134,10 @@ function batch_mul(
         ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C, V}
     batch_mul_wnaf(points, coeff, w1, w2)
 end
+
+
+function batch_mul(
+        points::Array{P, 1}, coeff::T, w1::Int=4, w2::Int=4,
+        ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C, V}
+    points .* coeff
+end
