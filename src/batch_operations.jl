@@ -131,7 +131,7 @@ Returns `points .* coeff`.
 """
 function batch_mul(
         points::Array{P, 1}, coeff::T, w1::Int=4, w2::Int=4,
-        ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C, V}
+        ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C <: EndomorphismType4, V}
     batch_mul_wnaf(points, coeff, w1, w2)
 end
 
