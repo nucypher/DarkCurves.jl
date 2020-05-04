@@ -1,6 +1,7 @@
 module DarkCurves
 
 using DarkIntegers
+using Random
 
 include("types.jl")
 export curve_order
@@ -28,6 +29,8 @@ include("balanced_decomposition.jl")
 include("batch_operations.jl")
 export lin_comb
 export batch_mul
+
+include("random.jl")
 
 include("curve_secp256k1.jl")
 export Curve_secp256k1

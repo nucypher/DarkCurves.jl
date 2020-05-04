@@ -24,6 +24,12 @@ curve_endomorphism_beta(::Type{<:EndomorphismType4}) = error("not implemented")
 end
 
 
+@generated function curve_order(::Type{C}, ::Type{T}) where {C <: EllipticCurve, T}
+    res = convert.(T, curve_order(C))
+    :( $res )
+end
+
+
 @generated function curve_coeff_a(::Type{C}, ::Type{T}) where {C <: EllipticCurve, T}
     res = convert(T, curve_coeff_a(C))
     :( $res )
