@@ -157,8 +157,80 @@ function mul_wnaf(p::P, y::V, w::Int=4) where {P <: EllipticCurvePoint, V <: Uni
 end
 
 
+function mul_endomorphism_wnaf(
+        p::P, y::V, w::Int=4
+        ) where {P <: EllipticCurvePoint{C, T}, V <: Union{Integer, BigInt}} where {C, T}
+
+    w1 = w
+    w2 = w
+
+    k1, k2, k2_signbit = balanced_decomposition(C, y)
+
+    if iszero(k1)
+        return apply_signbit(endomorphism(p) * k2, k2_signbit)
+    elseif iszero(k2)
+        return p * k1
+    end
+
+    p2 = apply_signbit(endomorphism(p), k2_signbit)
+
+    # corresponds to di = [1, 3, 5, ..., 2^(w-1)-1, -2^(w-1)-1, ..., -3, -1]
+    l1 = 1 << (w1 - 1)
+    precomp1 = Array{P}(undef, l1)
+    l2 = 1 << (w2 - 1)
+    precomp2 = Array{P}(undef, l2)
+
+    dp1 = double(p)
+    precomp1[1] = p
+    precomp1[end] = -p
+
+    for i in 2:(l1>>1)
+        precomp1[i] = precomp1[i-1] + dp1
+        precomp1[end-i+1] = -precomp1[i]
+    end
+
+    dp2 = double(p2)
+    precomp2[1] = p2
+    precomp2[end] = -p2
+
+    for i in 2:(l2>>1)
+        precomp2[i] = precomp2[i-1] + dp2
+        precomp2[end-i+1] = -precomp2[i]
+    end
+
+    ds1 = get_wnaf(k1, w1)
+    ds2 = get_wnaf(k2, w2)
+
+    if length(ds1) > length(ds2)
+        ds2 = vcat(ds2, zeros(Int, length(ds1) - length(ds2)))
+    elseif length(ds2) > length(ds1)
+        ds1 = vcat(ds1, zeros(Int, length(ds2) - length(ds1)))
+    end
+
+    acc = zero(P)
+    for idx in length(ds1):-1:1
+        acc = double(acc)
+        if !iszero(ds1[idx])
+            acc += precomp1[(ds1[idx] >> 1) + 1]
+        end
+        if !iszero(ds2[idx])
+            acc += precomp2[(ds2[idx] >> 1) + 1]
+        end
+    end
+
+    acc
+end
+
+
 function Base.:*(p::P, y::Union{ModUInt, MgModUInt}) where {P <: EllipticCurvePoint}
     p * value(y)
+end
+
+
+function Base.:*(
+        p::P, y::V
+        ) where {P <: EllipticCurvePoint{C, T}, V <: Union{Integer, BigInt}} where {C <: EndomorphismType4, T}
+    mul_endomorphism_wnaf(p, y)
 end
 
 
