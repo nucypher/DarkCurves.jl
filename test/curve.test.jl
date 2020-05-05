@@ -92,6 +92,8 @@ end)
     x_bi = 115047236638587805833081834189719086745649315857841928574581145752217906325686
     x = convert(MLUInt{2, UInt128}, x_bi)
 
+    @test func(b2, x) == DarkCurves.mul_double_and_add(b2, x)
+
     trial = @benchmark $func($b2, $x)
     @test_result benchmark_result(trial)
 end)
