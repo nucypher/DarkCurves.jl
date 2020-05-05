@@ -61,7 +61,10 @@ mul_funcs = (
     b1 = one(ptp)
     p = b1 + b1
 
-    @test func(p, 123) == ref_mul(p, 123)
+    x_bi = 123
+    x = convert(MLUInt{2, UInt128}, x_bi)
+
+    @test func(p, x) == ref_mul(p, x)
 end)
 
 

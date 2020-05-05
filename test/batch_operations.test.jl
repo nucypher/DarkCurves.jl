@@ -43,12 +43,21 @@ end)
 end)
 
 
-@testcase "Batch multiplication" for curve_type in curve_types, point_type in fast_point_types
+batch_mul_funcs = (
+    [DarkCurves.batch_mul_endomorhism_wnaf, DarkCurves.batch_mul_addition_chain, DarkCurves.batch_mul_wnaf]
+    => ["endomorphism+wNAF", "addition chain", "wNAF"])
+
+
+(@testcase "Batch multiplication" for
+        curve_type in curve_types,
+        point_type in fast_point_types,
+        func in batch_mul_funcs
+
     points, coeffs = prepare_lin_comb_dataset(curve_type, point_type, 16)
     ref = points .* coeffs[1]
-    res = DarkCurves.batch_mul(points, coeffs[1])
+    res = func(points, coeffs[1])
     @test ref == res
-end
+end)
 
 
 batch_reference(points, coeff) = points .* coeff
@@ -69,12 +78,13 @@ end)
 (@testcase tags=[:performance] "Batch multiplication performance" for
         curve_type in curve_types,
         point_type in fast_point_types,
+        func in batch_mul_funcs,
         width in [3, 4, 5]
 
     points, coeffs = prepare_lin_comb_dataset(curve_type, point_type, 1024)
     coeff = coeffs[1]
 
-    trial = @benchmark DarkCurves.batch_mul($points, $coeff, $width)
+    trial = @benchmark $func($points, $coeff, $width)
     @test_result benchmark_result(trial)
 end)
 
