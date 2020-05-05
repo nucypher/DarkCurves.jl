@@ -44,8 +44,8 @@ end)
 
 
 batch_mul_funcs = (
-    [DarkCurves.batch_mul_endomorphism_wnaf, DarkCurves.batch_mul_addition_chain, DarkCurves.batch_mul_wnaf]
-    => ["endomorphism+wNAF", "addition chain", "wNAF"])
+    [DarkCurves.batch_mul_endomorphism_wnaf, DarkCurves.batch_mul_wnaf]
+    => ["endomorphism+wNAF", "wNAF"])
 
 
 (@testcase "Batch multiplication" for
