@@ -25,17 +25,14 @@ double(x) = x + x
 
 
 function prepare_lin_comb_dataset(curve_type, point_type, len)
-    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{4, UInt64})
+    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{2, UInt128})
     ptp = point_type{curve_type, stp}
 
+    stp2 = curve_scalar_type(curve_type, ModUInt, MLUInt{2, UInt128})
+
     rng = MersenneTwister(123)
-    point_vals = rand(rng, big(1):curve_order(curve_type), len)
-    coeffs_bi = rand(rng, big(0):curve_modulus(curve_type)-1, len)
+    points = rand(rng, ptp, len)
+    coeffs = rand(rng, stp2, len)
 
-    b1 = one(ptp)
-    points = b1 .* point_vals
-
-    coeffs = convert.(MLUInt{4, UInt64}, coeffs_bi)
-
-    points, coeffs
+    points, value.(coeffs)
 end
