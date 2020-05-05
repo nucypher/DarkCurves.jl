@@ -90,8 +90,11 @@ end
 
 
 function batch_mul_endomorphism_wnaf(
-        points::Array{P, 1}, coeff::T, w1::Int=4, w2::Int=4,
+        points::Array{P, 1}, coeff::T, w::Int=4,
         ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C, V}
+
+    w1 = w
+    w2 = w
 
     k1, k2, k2_signbit = balanced_decomposition(C, coeff)
 
@@ -177,7 +180,7 @@ Returns `points .* coeff`.
 function batch_mul(
         points::Array{P, 1}, coeff::T, w::Int=4,
         ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C <: EndomorphismType4, V}
-    batch_mul_endomorphism_wnaf(points, coeff, w, w)
+    batch_mul_endomorphism_wnaf(points, coeff, w)
 end
 
 
