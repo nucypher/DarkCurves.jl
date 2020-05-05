@@ -222,18 +222,26 @@ function mul_endomorphism_wnaf(
 end
 
 
-function Base.:*(p::P, y::Union{ModUInt, MgModUInt}) where {P <: EllipticCurvePoint}
+@inline function Base.:*(
+        p::P, y::Union{ModUInt, MgModUInt}
+        ) where {P <: EllipticCurvePoint{C, T}} where {C <: EndomorphismType4, T}
     p * value(y)
 end
 
 
-function Base.:*(
-        p::P, y::V
-        ) where {P <: EllipticCurvePoint{C, T}, V <: Union{Integer, BigInt}} where {C <: EndomorphismType4, T}
+@inline function Base.:*(
+        p::P, y::Union{Integer, BigInt}
+        ) where {P <: EllipticCurvePoint{C, T}} where {C <: EndomorphismType4, T}
     mul_endomorphism_wnaf(p, y)
 end
 
 
-function Base.:*(p::P, y::V) where {P <: EllipticCurvePoint, V <: Union{Integer, BigInt}}
+@inline function Base.:*(p::P, y::Union{ModUInt, MgModUInt}) where {P <: EllipticCurvePoint}
+    p * value(y)
+end
+
+
+@inline function Base.:*(p::P, y::Union{Integer, BigInt}) where {P <: EllipticCurvePoint}
+    #record_curve_muls!()
     mul_wnaf(p, y)
 end
