@@ -34,6 +34,7 @@ Base.convert(::Type{JacobianPoint{C, T}}, p::AffinePoint{C, T}) where {C, T} =
 
 
 Base.zero(::Type{JacobianPoint{C, T}}) where {C, T} = JacobianPoint{C, T}()
+Base.zero(::JacobianPoint{C, T}) where {C, T} = zero(JacobianPoint{C, T})
 
 
 Base.iszero(p::JacobianPoint{C, T}) where {C, T} = p.inf

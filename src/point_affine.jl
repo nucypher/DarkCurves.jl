@@ -9,6 +9,7 @@ end
 
 
 Base.zero(::Type{AffinePoint{C, T}}) where {C, T} = AffinePoint{C, T}()
+Base.zero(::AffinePoint{C, T}) where {C, T} = zero(AffinePoint{C, T})
 
 
 Base.iszero(p::AffinePoint{C, T}) where {C, T} = p.inf

@@ -32,6 +32,7 @@ end
 
 
 Base.zero(::Type{ChudnovskyPoint{C, T}}) where {C, T} = ChudnovskyPoint{C, T}()
+Base.zero(::ChudnovskyPoint{C, T}) where {C, T} = zero(ChudnovskyPoint{C, T})
 
 
 Base.iszero(p::ChudnovskyPoint{C, T}) where {C, T} = p.inf
