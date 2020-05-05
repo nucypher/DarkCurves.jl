@@ -45,6 +45,52 @@ end
 
 
 function batch_mul_wnaf(
+function batch_mul_wnaf(points::Array{P, 1}, y::T, w::Int=4) where {P <: EllipticCurvePoint, T <: Union{Integer, BigInt}}
+
+    if iszero(y)
+        return zeros(P, length(points))
+    elseif isone(y)
+        return points
+    end
+
+    l = 1 << (w - 1)
+    precomp = Array{P}(undef, length(points), l) # corresponds to di = [1, 3, 5, ..., 2^(w-1)-1, -2^(w-1)-1, ..., -3, -1]
+
+    dpoints = double.(points)
+
+    for j in 1:length(points)
+        precomp[j,1] = points[j]
+        precomp[j,end] = -points[j]
+    end
+
+    for i in 2:(l>>1)
+        for j in 1:length(points)
+            precomp[j,i] = precomp[j,i-1] + dpoints[j]
+            precomp[j,end-i+1] = -precomp[j,i]
+        end
+    end
+
+    ds = get_wnaf(y, w)
+
+    acc = zeros(P, length(points))
+    for idx in length(ds):-1:1
+        for j in 1:length(points)
+            acc[j] = double(acc[j])
+        end
+
+        if !iszero(ds[idx])
+            for j in 1:length(points)
+                acc[j] += precomp[j,(ds[idx] >> 1) + 1]
+            end
+        end
+
+    end
+
+    acc
+end
+
+
+function batch_mul_endomorhism_wnaf(
         points::Array{P, 1}, coeff::T, w1::Int=4, w2::Int=4,
         ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C, V}
 
@@ -130,14 +176,14 @@ end
 Returns `points .* coeff`.
 """
 function batch_mul(
-        points::Array{P, 1}, coeff::T, w1::Int=4, w2::Int=4,
+        points::Array{P, 1}, coeff::T, w::Int=4,
         ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C <: EndomorphismType4, V}
-    batch_mul_wnaf(points, coeff, w1, w2)
+    batch_mul_endomorphism_wnaf(points, coeff, w, w)
 end
 
 
 function batch_mul(
-        points::Array{P, 1}, coeff::T, w1::Int=4, w2::Int=4,
+        points::Array{P, 1}, coeff::T, w::Int=4,
         ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C, V}
-    points .* coeff
+    batch_mul_wnaf(points, coeff, w)
 end
