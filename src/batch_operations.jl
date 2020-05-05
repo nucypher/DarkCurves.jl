@@ -44,7 +44,6 @@ function lin_comb(
 end
 
 
-function batch_mul_wnaf(
 function batch_mul_wnaf(points::Array{P, 1}, y::T, w::Int=4) where {P <: EllipticCurvePoint, T <: Union{Integer, BigInt}}
 
     if iszero(y)
@@ -90,7 +89,7 @@ function batch_mul_wnaf(points::Array{P, 1}, y::T, w::Int=4) where {P <: Ellipti
 end
 
 
-function batch_mul_endomorhism_wnaf(
+function batch_mul_endomorphism_wnaf(
         points::Array{P, 1}, coeff::T, w1::Int=4, w2::Int=4,
         ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C, V}
 
