@@ -167,9 +167,9 @@ function mul_endomorphism_wnaf(
     k1, k2, k2_signbit = balanced_decomposition(C, y)
 
     if iszero(k1)
-        return apply_signbit(endomorphism(p) * k2, k2_signbit)
+        return apply_signbit(mul_wnaf(curve_endomorphism_type_4(p), k2), k2_signbit)
     elseif iszero(k2)
-        return p * k1
+        return mul_wnaf(p, k1)
     end
 
     p2 = apply_signbit(endomorphism(p), k2_signbit)
