@@ -49,9 +49,17 @@ function mul_windowed(p::P, y::V, w::Int=4) where {P <: EllipticCurvePoint, V <:
     for i in (nb ÷ w):-1:0
         acc = repeated_double(acc, w)
         d = y >> (i * w)
-        if !iszero(d)
-            acc += precomp[d]
+        d_idx = d % Int
+        if !iszero(d_idx)
+            acc += precomp[d_idx]
         end
+
+        # TODO: there is some performance loss here because `<<` on modulo integers
+        # requires a reduction. We know that there's no overflow here,
+        # but we can't tell it to the compiler.
+        # And if we were to use a special "non-overflow" function,
+        # it would have to be defined for any custom scalar type a curve might have.
+        # Same also applies to other multiplication functions.
         y = y - (d << (i * w))
     end
     acc
@@ -84,7 +92,8 @@ function mul_sliding_window(p::P, y::V, w::Int=4) where {P <: EllipticCurvePoint
         end
 
         t = y >> (new_nb - w)
-        acc += precomp[t - (1 << (w - 1) - 1)]
+        t_idx = t % Int
+        acc += precomp[t_idx - (1 << (w - 1) - 1)]
 
         nb = new_nb
         y = y - (t << (new_nb - w))
@@ -94,7 +103,8 @@ end
 
 
 function get_wnaf(val::T, w::Int) where T
-    mask = (one(T) << w) - one(T)
+    # Assuming mask fits into UInt32, so w <= 32
+    mask = (one(UInt32) << w) - one(UInt32)
     res = Int[]
 
     tz = trailing_zeros(val)
@@ -110,7 +120,7 @@ function get_wnaf(val::T, w::Int) where T
             push!(res, 0)
         end
 
-        di = convert(Int, val & mask)
+        di = (val % UInt32) & mask
         if di >= 1 << (w - 1)
             val += ((1 << w) - di)
         else
@@ -159,7 +169,7 @@ end
 
 function mul_endomorphism_wnaf(
         p::P, y::V, w::Int=4
-        ) where {P <: EllipticCurvePoint{C, T}, V <: Union{Integer, BigInt}} where {C, T}
+        ) where {P <: EllipticCurvePoint{C}, V <: Union{Integer, BigInt}} where C
 
     w1 = w
     w2 = w
@@ -172,7 +182,7 @@ function mul_endomorphism_wnaf(
         return mul_wnaf(p, k1)
     end
 
-    p2 = apply_signbit(endomorphism(p), k2_signbit)
+    p2 = apply_signbit(curve_endomorphism_type_4(p), k2_signbit)
 
     # corresponds to di = [1, 3, 5, ..., 2^(w-1)-1, -2^(w-1)-1, ..., -3, -1]
     l1 = 1 << (w1 - 1)
@@ -224,14 +234,14 @@ end
 
 @inline function Base.:*(
         p::P, y::Union{ModUInt, MgModUInt}
-        ) where {P <: EllipticCurvePoint{C, T}} where {C <: EndomorphismType4, T}
+        ) where {P <: EllipticCurvePoint{C}} where {C <: EndomorphismType4Curve}
     p * value(y)
 end
 
 
 @inline function Base.:*(
         p::P, y::Union{Integer, BigInt}
-        ) where {P <: EllipticCurvePoint{C, T}} where {C <: EndomorphismType4, T}
+        ) where {P <: EllipticCurvePoint{C}} where {C <: EndomorphismType4Curve}
     mul_endomorphism_wnaf(p, y)
 end
 

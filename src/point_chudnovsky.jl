@@ -1,4 +1,4 @@
-struct ChudnovskyPoint{C <: EllipticCurve, T <: Number} <: EllipticCurvePoint{C, T}
+struct ChudnovskyPoint{C <: EllipticCurve, T <: Number} <: StandardEllipticCurvePoint{C}
     x :: T
     y :: T
     z :: T
@@ -59,7 +59,7 @@ function double(p::ChudnovskyPoint{C, T}) where {C, T}
         return p
     end
 
-    a = curve_coeff_a(C)
+    a = curve_weierstrass_coeff_a(C)
 
     S = double(double(p.x * square(p.y)))
     M = triple(square(p.x))
@@ -115,5 +115,5 @@ function Base.:+(p::ChudnovskyPoint{C, T}, q::ChudnovskyPoint{C, T}) where {C, T
 end
 
 
-endomorphism(p::ChudnovskyPoint{C, T}) where {C <: EndomorphismType4, T} =
-    iszero(p) ? p : ChudnovskyPoint{C, T}(curve_endomorphism_beta(C, T) * p.x, p.y, p.z, p.z2, p.z3)
+curve_endomorphism_type_4(p::ChudnovskyPoint{C, T}) where {C <: EndomorphismType4Curve, T} =
+    iszero(p) ? p : ChudnovskyPoint{C, T}(curve_endomorphism_type_4_beta(C, T) * p.x, p.y, p.z, p.z2, p.z3)

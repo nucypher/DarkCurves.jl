@@ -2,7 +2,7 @@
 Linear combination using Shamir's trick and a fixed window.
 """
 function lin_comb_windowed(
-        points::Array{P, 1}, coeffs::Array{T, 1}, w::Int=4) where {P <: EllipticCurvePoint, T <: Integer}
+        points::Array{P, 1}, coeffs::Array{T, 1}, w::Int=4) where {P, T}
 
     @assert length(points) == length(coeffs)
 
@@ -24,8 +24,9 @@ function lin_comb_windowed(
         acc = repeated_double(acc, w)
         for j in 1:length(points)
             d = ys[j] >> (i * w)
+            di = d % Int
             if !iszero(d)
-                acc += precomp[j, d]
+                acc += precomp[j, di]
             end
             ys[j] -= d << (i * w)
         end
@@ -91,7 +92,7 @@ end
 
 function batch_mul_endomorphism_wnaf(
         points::Array{P, 1}, coeff::T, w::Int=4,
-        ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C, V}
+        ) where {P <: EllipticCurvePoint{C}, T <: Integer} where C
 
     w1 = w
     w2 = w
@@ -106,7 +107,7 @@ function batch_mul_endomorphism_wnaf(
 
     points2 = Array{P}(undef, length(points))
     for j in 1:length(points)
-        points2[j] = apply_signbit(endomorphism(points[j]), k2_signbit)
+        points2[j] = apply_signbit(curve_endomorphism_type_4(points[j]), k2_signbit)
     end
 
 
@@ -179,13 +180,13 @@ Returns `points .* coeff`.
 """
 function batch_mul(
         points::Array{P, 1}, coeff::T, w::Int=4,
-        ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C <: EndomorphismType4, V}
+        ) where {P <: EllipticCurvePoint{C}, T <: Integer} where {C <: EndomorphismType4Curve}
     batch_mul_endomorphism_wnaf(points, coeff, w)
 end
 
 
 function batch_mul(
         points::Array{P, 1}, coeff::T, w::Int=4,
-        ) where {P <: EllipticCurvePoint{C, V}, T <: Integer} where {C, V}
+        ) where {P <: EllipticCurvePoint, T <: Integer} where C
     batch_mul_wnaf(points, coeff, w)
 end

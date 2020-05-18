@@ -2,15 +2,16 @@
 
 
 curve_types = [Curve_secp256k1] => ["SECP256k1"]
-point_types = [AffinePoint, JacobianPoint, ChudnovskyPoint] => ["affine", "Jacobian", "Chudnovsky"]
+point_types =
+    [DarkCurves.AffinePoint, DarkCurves.JacobianPoint, DarkCurves.ChudnovskyPoint] =>
+    ["affine", "Jacobian", "Chudnovsky"]
 
 
 @testcase "Basic operations" for curve_type in curve_types, point_type in point_types
 
-    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{4, UInt64})
-    ref_ptp = AffinePoint{curve_type, stp}
-    ptp = point_type{curve_type, stp}
-    order = curve_order(curve_type)
+    stp = curve_scalar_type(curve_type, ModUInt, MLUInt{4, UInt64})
+    ptp = curve_point_type(curve_type, point_type, MgModUInt, MLUInt{4, UInt64})
+    ref_ptp = curve_point_type(curve_type, DarkCurves.AffinePoint, MgModUInt, MLUInt{4, UInt64})
 
     b = one(ptp)
     b_ref = one(ref_ptp)
@@ -20,10 +21,11 @@ point_types = [AffinePoint, JacobianPoint, ChudnovskyPoint] => ["affine", "Jacob
     @test b + b == convert(ptp, b_ref + b_ref)
     @test double(b) + b == convert(ptp, double(b_ref) + b_ref)
 
-    @test ref_mul(b + b, 23) == (b + b) * 23
-    @test iszero(b * (order - 1) + b)
-    @test iszero(b * order)
-    @test b * (order + 1) == b
+    @test ref_mul(b + b, 23) == (b + b) * convert(stp, 23)
+
+    @test iszero(b * zero(stp))
+    @test b * one(stp) == b
+    @test iszero(b * (-one(stp)) + b)
 
     @test double(double(b)) - b == double(b) + b
 end
@@ -33,8 +35,7 @@ end
         curve_type in curve_types,
         point_type in point_types
 
-    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{4, UInt64})
-    ptp = point_type{curve_type, stp}
+    ptp = curve_point_type(curve_type, point_type)
 
     b1 = one(ptp)
     b2 = double(b1)
@@ -46,8 +47,9 @@ end)
 
 
 mul_funcs = (
-    [DarkCurves.mul_double_and_add, DarkCurves.mul_windowed, DarkCurves.mul_sliding_window, DarkCurves.mul_wnaf]
-    => ["double-and-add", "windowed", "sliding window", "wNAF"])
+    [DarkCurves.mul_double_and_add, DarkCurves.mul_windowed,
+    DarkCurves.mul_sliding_window, DarkCurves.mul_wnaf, DarkCurves.mul_endomorphism_wnaf]
+    => ["double-and-add", "windowed", "sliding window", "wNAF", "endomorphism + wNAF"])
 
 
 (@testcase "Multiplication" for
@@ -55,8 +57,7 @@ mul_funcs = (
         point_type in point_types,
         func in mul_funcs
 
-    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{4, UInt64})
-    ptp = point_type{curve_type, stp}
+    ptp = curve_point_type(curve_type, point_type)
 
     b1 = one(ptp)
     p = b1 + b1
@@ -68,32 +69,19 @@ mul_funcs = (
 end)
 
 
-(@testcase tags=[:performance] "Scalar multiplication performance" for
-        curve_type in curve_types
-
-    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{2, UInt128})
-
-    x_bi = 115047236638587805833081834189719086745649315857841928574581145752217906325686
-    x = convert(stp, x_bi)
-
-    trial = @benchmark $x * $x
-    @test_result benchmark_result(trial)
-end)
-
-
 (@testcase tags=[:performance] "Multiplication performance" for
         curve_type in curve_types,
         point_type in point_types,
         func in mul_funcs
 
-    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{2, UInt128})
-    ptp = point_type{curve_type, stp}
+    stp = curve_scalar_type(curve_type)
+    ptp = curve_point_type(curve_type, point_type)
 
     b1 = one(ptp)
     b2 = double(b1)
 
     x_bi = 115047236638587805833081834189719086745649315857841928574581145752217906325686
-    x = convert(MLUInt{2, UInt128}, x_bi)
+    x = convert(stp, x_bi)
 
     @test func(b2, x) == DarkCurves.mul_double_and_add(b2, x)
 

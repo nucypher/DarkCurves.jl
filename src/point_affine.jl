@@ -1,4 +1,4 @@
-struct AffinePoint{C <: EllipticCurve, T <: Number} <: EllipticCurvePoint{C, T}
+struct AffinePoint{C <: EllipticCurve, T <: Number} <: StandardEllipticCurvePoint{C}
     x :: T
     y :: T
     inf :: Bool
@@ -45,7 +45,7 @@ function Base.:+(p::AffinePoint{C, T}, q::AffinePoint{C, T}) where {C, T}
         l = (q.y - p.y) * inv(q.x - p.x)
     else
         t = p.x^2
-        l = (triple(t) + curve_coeff_a(C, T)) * inv(p.y + p.y)
+        l = (triple(t) + curve_weierstrass_coeff_a(C, T)) * inv(p.y + p.y)
     end
     x = l^2 - p.x - q.x
     y = l * (p.x - x) - p.y
@@ -53,5 +53,5 @@ function Base.:+(p::AffinePoint{C, T}, q::AffinePoint{C, T}) where {C, T}
 end
 
 
-endomorphism(p::AffinePoint{C, T}) where {C <: EndomorphismType4, T} =
-    iszero(p) ? p : AffinePoint{C, T}(curve_endomorphism_beta(C, T) * p.x, p.y)
+curve_endomorphism_type_4(p::AffinePoint{C, T}) where {C <: EndomorphismType4Curve, T} =
+    iszero(p) ? p : AffinePoint{C, T}(curve_endomorphism_type_4_beta(C, T) * p.x, p.y)

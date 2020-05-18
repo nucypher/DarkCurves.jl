@@ -1,7 +1,7 @@
 struct CurvePointSampler{P} <: Random.Sampler{P}
     base_powers :: Array{P, 1}
 
-    function CurvePointSampler{P}() where P <: EllipticCurvePoint{C, T} where {C, T}
+    function CurvePointSampler{P}() where P <: EllipticCurvePoint{C} where C
         base_powers = Array{P}(undef, num_bits(curve_order(C)))
         base_powers[1] = one(P)
         for i in 2:length(base_powers)
@@ -28,12 +28,11 @@ function Random.Sampler(
 end
 
 
-function Base.rand(rng::AbstractRNG, sampler::CurvePointSampler{P}) where P <: EllipticCurvePoint{C, T} where {C, T}
-    order = value(curve_order(C, T))
-    pwr = rand(rng, one(order):order)
+function Base.rand(rng::AbstractRNG, sampler::CurvePointSampler{P}) where P <: EllipticCurvePoint{C} where C
+    pwr = rand(rng, curve_scalar_type(C))
 
     res = zero(P)
-    for i in 1:num_bits(curve_order(C))
+    for i in 1:num_bits(pwr)
         if isodd(pwr)
             res += sampler.base_powers[i]
         end

@@ -76,9 +76,9 @@ end
 
 
 @generated function get_decomposition_coeffs(
-        ::Type{T}, ::Type{C}) where {T, C <: EndomorphismType4}
+        ::Type{T}, ::Type{C}) where {T, C <: EndomorphismType4Curve}
 
-    l = DarkCurves.curve_endomorphism_lambda(C)
+    l = DarkCurves.curve_endomorphism_type_4_lambda(C)
     n = curve_order(C)
     a1, b1, a2, b2 = decomposition_coeffs(n, l)
     dc_typed = DecompositionCoeffs{T}(a1, b1, a2, b2, n)
@@ -93,7 +93,7 @@ apply_signbit(x, s) = s ? -x : x
 """
 Returns `k1, k2` such that `k = k1 + k2 * l mod n`.
 """
-function balanced_decomposition(::Type{C}, k::T) where {C <: EndomorphismType4, T}
+function balanced_decomposition(::Type{C}, k::T) where {C <: EndomorphismType4Curve, T}
     dc = get_decomposition_coeffs(T, C)
 
     c1 = convert(T, widemul(dc.b2, k) ÷ dc.n)
@@ -113,3 +113,7 @@ function balanced_decomposition(::Type{C}, k::T) where {C <: EndomorphismType4, 
 
     k1, k2, k2_signbit
 end
+
+
+balanced_decomposition(::Type{C}, k::AbstractModUInt) where C <: EndomorphismType4Curve =
+    balanced_decomposition(C, value(k))

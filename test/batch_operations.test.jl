@@ -2,11 +2,11 @@
 
 
 curve_types = [Curve_secp256k1] => ["SECP256k1"]
-fast_point_types = [JacobianPoint, ChudnovskyPoint] => ["Jacobian", "Chudnovsky"]
+fast_point_types =
+    [DarkCurves.JacobianPoint, DarkCurves.ChudnovskyPoint] =>
+    ["Jacobian", "Chudnovsky"]
 
-lin_comb_funcs = (
-    [DarkCurves.lin_comb_windowed]
-    => ["windowed"])
+lin_comb_funcs = [DarkCurves.lin_comb_windowed] => ["windowed"]
 
 
 (@testcase "Linear combination" for

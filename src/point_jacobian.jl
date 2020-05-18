@@ -1,4 +1,4 @@
-struct JacobianPoint{C <: EllipticCurve, T <: Number} <: EllipticCurvePoint{C, T}
+struct JacobianPoint{C <: EllipticCurve, T <: Number} <: StandardEllipticCurvePoint{C}
     x :: T
     y :: T
     z :: T
@@ -61,7 +61,7 @@ function double(p::JacobianPoint{C, T}) where {C, T}
         return p
     end
 
-    a = curve_coeff_a(C)
+    a = curve_weierstrass_coeff_a(C)
 
     XX = square(p.x)
     YY = square(p.y)
@@ -125,5 +125,5 @@ function Base.:+(p::JacobianPoint{C, T}, q::JacobianPoint{C, T}) where {C, T}
 end
 
 
-endomorphism(p::JacobianPoint{C, T}) where {C <: EndomorphismType4, T} =
-    iszero(p) ? p : JacobianPoint{C, T}(curve_endomorphism_beta(C, T) * p.x, p.y, p.z)
+curve_endomorphism_type_4(p::JacobianPoint{C, T}) where {C <: EndomorphismType4Curve, T} =
+    iszero(p) ? p : JacobianPoint{C, T}(curve_endomorphism_type_4_beta(C, T) * p.x, p.y, p.z)

@@ -1,24 +1,25 @@
-using DarkCurves: curve_endomorphism_lambda, endomorphism
+using DarkCurves: curve_endomorphism_type_4_lambda, curve_endomorphism_type_4
 
 
 @testgroup "Endomorphisms" begin
 
 
 curve_types = [Curve_secp256k1] => ["SECP256k1"]
-point_types = [AffinePoint, JacobianPoint, ChudnovskyPoint] => ["affine", "Jacobian", "Chudnovsky"]
+point_types =
+    [DarkCurves.AffinePoint, DarkCurves.JacobianPoint, DarkCurves.ChudnovskyPoint] =>
+    ["affine", "Jacobian", "Chudnovsky"]
 
 
-@testcase "Endomorphism function" for curve_type in curve_types, point_type in point_types
-    stp = curve_scalar_type(curve_type, MgModUInt, MLUInt{4, UInt64})
-    ref_ptp = AffinePoint{curve_type, stp}
-    ptp = point_type{curve_type, stp}
-    order = curve_order(curve_type)
+@testcase "Endomorphism type 4" for curve_type in curve_types, point_type in point_types
 
-    p = one(ptp) * 123
-    l = curve_endomorphism_lambda(curve_type, MLUInt{4, UInt64})
-    @test endomorphism(p) == p * l
+    stp = curve_scalar_type(curve_type)
+    ptp = curve_point_type(curve_type, point_type)
 
-    @test endomorphism(zero(ptp)) == zero(ptp)
+    p = one(ptp) * convert(stp, 123)
+    l = curve_endomorphism_type_4_lambda(curve_type, MLUInt{4, UInt64})
+    @test curve_endomorphism_type_4(p) == p * l
+
+    @test curve_endomorphism_type_4(zero(ptp)) == zero(ptp)
 end
 
 

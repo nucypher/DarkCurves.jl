@@ -4,23 +4,14 @@ using DarkIntegers
 using Random
 
 include("types.jl")
-export curve_order
-export curve_base
-export curve_modulus
-export curve_coeff_a
-export curve_coeff_b
+export curve_point_type
 export curve_scalar_type
 export EllipticCurve
 export EllipticCurvePoint
 
 include("point_affine.jl")
-export AffinePoint
-
 include("point_jacobian.jl")
-export JacobianPoint
-
 include("point_chudnovsky.jl")
-export ChudnovskyPoint
 
 include("mul.jl")
 
