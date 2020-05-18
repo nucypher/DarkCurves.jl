@@ -1,3 +1,8 @@
+"""
+SECP256k1 curve `y^2 = x^3 + 7` over the field of integers modulo
+`2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1`
+with the order (little-endian) `0xFFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141`.
+"""
 struct Curve_secp256k1 <: EndomorphismType4Curve end
 
 

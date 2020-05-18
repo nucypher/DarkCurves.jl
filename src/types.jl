@@ -1,31 +1,64 @@
+"""
+Abstract type for an elliptic curve "bundle" that includes a point type,
+a scalar type, and operations on them.
+"""
 abstract type EllipticCurve end
 
 
-# A curve define by an equation `y^2 = x^3 + a * x + b`
+"""
+A subtype of [`EllipticCurve`](@ref) for curves defined by an equation `y^2 = x^3 + a * x + b`.
+"""
 abstract type WeierstrassCurve <: EllipticCurve end
 
 
-# A curve of the form `y^2 = x^3 + b` with the modulus `p = 1 mod 3`
+"""
+A subtype of [`WeierstrassCurve`](@ref) for curves of the form `y^2 = x^3 + b`
+with the modulus `p = 1 mod 3`.
+These curves support an endomorphism type 4.
+"""
 abstract type EndomorphismType4Curve <: WeierstrassCurve end
 
 
+"""
+Abstract type of a curve point.
+"""
 abstract type EllipticCurvePoint{C <: EllipticCurve} end
 
 
-# Abstract type for built-in curve point types parameterized by coordinate types
+"""
+Abstract type for built-in curve point types parameterized by coordinate types.
+"""
 abstract type StandardEllipticCurvePoint{C} <: EllipticCurvePoint{C} end
 
 
 # Main public interface
 
-curve_point_type(::Type{<:EllipticCurve}) = error("not implemented")
-# Point type must support:
-# zero(), iszero(), one(), rand(), +, -, ==, * (by a scalar type)
 
+"""
+    curve_point_type(::Type{<:EllipticCurve})
+
+Returns the type of a curve point (a subtype of [`EllipticCurvePoint`](@ref))
+for an object of type [`EllipticCurve`](@ref).
+
+Objects of this type support `zero()`, `iszero()`, `one()`, `rand()`,
+`+`, `-`, `==`, `*` (by a scalar type).
+
+Base point is returned by `one()`, and infinity point by `zero()`.
+"""
+curve_point_type(::Type{<:EllipticCurve}) = error("not implemented")
+
+
+"""
+    curve_scalar_type(::Type{<:EllipticCurve})
+
+Returns the type of an associated scalar for an object of type [`EllipticCurve`](@ref).
+All operations with objects of this type are done modulo curve order.
+
+Objects of this type support `zero()`, `iszero()`, `one()`, `rand()`,
+`+`, `-`, `==`, `*` (by a scalar type or a point type),
+`iseven()`, `isodd()`, `>>`, `inv()`, `divrem()`, `trailing_zeros()`, `DarkIntegers.num_bits()`.
+"""
 curve_scalar_type(::Type{<:EllipticCurve}) = error("not implemented")
-# Scalar type must support:
-# zero(), iszero(), one(), rand(), +, -, ==, * (by a scalar type and by a point type),
-# iseven(), isodd(), >>, inv(), divrem(), trailing_zeros(), DarkIntegers.num_bits()
 
 
 # Helper functions to construct default point and scalar types out of DarkInteger types
