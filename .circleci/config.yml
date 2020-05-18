@@ -38,6 +38,18 @@ jobs:
       - run:
           name: Process code-coverage
           command: julia --project=/root/project/DarkCurves -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  test-julia14:
+    working_directory: /root/project/DarkCurves # Clone into a directory whose name matches your Package.
+    docker:
+      - image: julia:1.4 # image comes from Docker hub
+    steps:
+      - checkout
+      - run:
+          name: Install and test this package
+          command: julia --project=/root/project/DarkCurves -e 'using Pkg; Pkg.test(; coverage=true)'
+      - run:
+          name: Process code-coverage
+          command: julia --project=/root/project/DarkCurves -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
 workflows:
   version: 2
   test:
