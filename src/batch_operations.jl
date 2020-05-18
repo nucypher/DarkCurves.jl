@@ -35,13 +35,175 @@ function lin_comb_windowed(
 end
 
 
+# For each subset in `subsets` (provided as a list of indices into `numbers`),
+# compute the sum of that subset of `numbers`. More efficient than the naive method.
+function multisubset(numbers::Array{P, 1}, subsets_list::Array{Set{Int}, 1}) where P
+    numbers = copy(numbers)
+    subsets = Dict((i-1) => copy(subset) for (i, subset) in enumerate(subsets_list))
+    output = zeros(P, length(subsets_list))
+
+    for roundcount in 1:9999999
+        # Compute counts of every pair of indices in the subset list
+        pair_count = Dict{Tuple{Int, Int}, Int}()
+        for (index, subset) in subsets
+            for x in subset
+                for y in subset
+                    if y > x
+                        pair_count[(x, y)] = get(pair_count, (x, y), 0) + 1
+                    end
+                end
+            end
+        end
+
+        # Determine pairs with highest count. The cutoff parameter [:len(numbers)]
+        # determines a tradeoff between group operation count and other forms of overhead
+        cutoff = min(length(pair_count), length(numbers) * trunc(Int, log(length(numbers))))
+        pairs_by_count = collect(keys(pair_count))
+        sort!(pairs_by_count; alg=PartialQuickSort(cutoff), by=el->pair_count[el], rev=true)
+        pairs_by_count = pairs_by_count[1:cutoff]
+
+        # Exit condition: all subsets have size 1, no pairs
+        if length(pairs_by_count) == 0
+            for (key, subset) in subsets
+                for index in subset
+                    output[key+1] += numbers[index+1]
+                end
+            end
+            return output
+        end
+
+        # In each of the highest-count pairs, take the sum of the numbers at those indices,
+        # and add the result as a new value, and modify `subsets` to include the new value
+        # wherever possible
+        used = Set{Int}()
+        for (maxx, maxy) in pairs_by_count
+            if maxx in used || maxy in used
+                continue
+            end
+            push!(used, maxx)
+            push!(used, maxy)
+            push!(numbers, numbers[maxx+1] + numbers[maxy+1])
+            for (key, subset) in subsets
+                if maxx in subset && maxy in subset
+                    delete!(subset, maxx)
+                    delete!(subset, maxy)
+                    if isempty(subset)
+                        output[key+1] = numbers[end]
+                        delete!(subsets, key)
+                    else
+                        push!(subset, length(numbers)-1)
+                    end
+                end
+            end
+        end
+    end
+end
+
+
+function lin_comb_vitalik(numbers::Array{P, 1}, factors::Array{T, 1}) where {P, T}
+    # Maximum bit length of a number; how many subsets we need to make
+    maxbitlen = maximum(num_bits.(factors)) # TODO: -1? otherwise the last subset is empty
+    # Compute the subsets: the ith subset contains the numbers whose corresponding factor
+    # has a 1 at the ith bit
+    subsets = [Set(i-1 for i in 1:length(numbers) if isodd(factors[i] >> j)) for j in 0:maxbitlen]
+    subset_sums = multisubset(numbers, subsets)
+    # For example, suppose a value V has factor 6 (011 in increasing-order binary). Subset 0
+    # will not have V, subset 1 will, and subset 2 will. So if we multiply the output of adding
+    # subset 0 with twice the output of adding subset 1, with four times the output of adding
+    # subset 2, then V will be represented 0 + 2 + 4 = 6 times. This reasoning applies for every
+    # value. So `subset_0_sum + 2 * subset_1_sum + 4 * subset_2_sum` gives us the result we want.
+    # Here, we compute this as `((subset_2_sum * 2) + subset_1_sum) * 2 + subset_0_sum` for
+    # efficiency: an extra `maxbitlen * 2` group operations.
+    o = zero(P)
+    for i in length(subsets):-1:1
+        o = double(o) + subset_sums[i]
+    end
+    o
+end
+
+
 """
 Calculates a linear combination of curve points
 given an array of points and an array of coefficients.
 """
 function lin_comb(
         points::Array{P, 1}, coeffs::Array{T, 1}, w::Int=4) where {P <: EllipticCurvePoint, T <: Integer}
+    #record_curve_muls!(length(points))
     lin_comb_windowed(points, coeffs, w)
+end
+
+
+@Base.propagate_inbounds function batch_mul_addition_chain(x::Array{P, 1}, n::T, log_m::Int=4) where {P, T}
+
+    mod_m = (1 << log_m) - 1
+
+    N = n
+    Z = copy(x)
+    Ys = zeros(P, length(x), 1 << (log_m - 1))
+
+    while true
+
+        # At every step here
+        #     x * n == Z * N + sum(Ys .* collect(1:2:2^log_m))
+
+        k = (N & mod_m) % Int
+        N >>= log_m
+
+        if k == 0
+
+            for i in 1:length(Z)
+                Z[i] = repeated_double(Z[i], log_m)
+            end
+            #Z .= repeated_double.(Z, log_m)
+            continue
+        else
+            p = trailing_zeros(k)
+            q = k >> p
+
+            for i in 1:length(Z)
+                Z[i] = repeated_double(Z[i], p)
+            end
+            #Z .= repeated_double.(Z, p)
+
+            for i in 1:length(Z)
+                Ys[i, (q >> 1) + 1] += Z[i]
+            end
+            #Ys[(q >> 1) + 1,:] .+= Z
+        end
+
+        if N > 0
+            for i in 1:length(Z)
+                Z[i] = repeated_double(Z[i], log_m - p)
+            end
+            #Z .= repeated_double.(Z, log_m - p)
+        else
+            break
+        end
+    end
+
+    for i in (1<<(log_m-1))-1:-1:1
+        for j in 1:length(Z)
+            Ys[j,i] += Ys[j,i+1]
+        end
+        #Ys[i,:] .+= Ys[i+1,:]
+    end
+
+    for j in 1:length(Z)
+        Z[j] = Ys[j,2]
+    end
+
+    for k in 3:(1<<(log_m-1))
+        for j in 1:length(Z)
+            Z[j] += Ys[j,k]
+        end
+    end
+
+    for j in 1:length(Z)
+        Z[j] = double(Z[j]) + Ys[j,1]
+    end
+
+    Z
+    #Ys[1,:] .+ double.(sum(Ys[2:end,:], dims=1)[:])
 end
 
 
