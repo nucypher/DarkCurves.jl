@@ -1,7 +1,7 @@
 # Version history
 
 
-## Current development version
+## v0.2.0 (18 May 2020)
 
 * CHANGED: renamed `curve_modulus()` to `curve_coordinate_modulus()`.
 * CHANGED: renamed `EndomorphismType4`, `endomorphism()`, `curve_endomorphism_beta()`, `curve_endomorphism_lambda()` to `EndomorphismType4Curve`, `curve_endomorphism_type_4()`, `curve_endomorphism_type_4_beta()`, `curve_endomorphism_type_4_lambda()`, respectively.

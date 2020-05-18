@@ -1,7 +1,7 @@
 name = "DarkCurves"
 uuid = "eb74ef6d-f479-4c54-be43-bc7ae9988d2f"
 authors = ["Bogdan Opanchuk <bogdan@opanchuk.net>"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 DarkIntegers = "95d18f7b-8dde-4426-a3cb-b3b9e7df9890"
