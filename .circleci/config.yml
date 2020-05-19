@@ -50,6 +50,21 @@ jobs:
       - run:
           name: Process code-coverage
           command: julia --project=/root/project/DarkCurves -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  docs:
+    working_directory: /root/project/DarkCurves # Clone into a directory whose name matches your Package.
+    docker:
+      - image: julia:1.4 # image comes from Docker hub
+    steps:
+      - checkout
+      - run:
+          name: Install git # Documenter will push to the gh-pages branch and needs it
+          command: apt-get update && apt-get install -y git
+      - run:
+          name: Instantiate the package
+          command: julia --project=/root/project/DarkCurves/docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate(); Pkg.add("Documenter")'
+      - run:
+          name: Generate and upload the documentation
+          command: julia --project=/root/project/DarkCurves/docs docs/make.jl
 workflows:
   version: 2
   test:
@@ -57,3 +72,5 @@ workflows:
       - test-julia10
       - test-julia12
       - test-julia13
+      - test-julia14
+      - docs
